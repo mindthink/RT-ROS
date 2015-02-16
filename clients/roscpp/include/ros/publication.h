@@ -30,6 +30,7 @@
 
 #include "ros/forwards.h"
 #include "ros/advertise_options.h"
+#include "ros/subscriber_link.h"
 #include "common.h"
 #include "XmlRpc.h"
 
@@ -39,6 +40,8 @@
 #include <boost/shared_array.hpp>
 
 #include <vector>
+#include <iostream>
+#include <queue>
 
 namespace ros
 {
@@ -46,6 +49,13 @@ namespace ros
 class SubscriberLink;
 typedef boost::shared_ptr<SubscriberLink> SubscriberLinkPtr;
 typedef std::vector<SubscriberLinkPtr> V_SubscriberLink;
+
+struct PriorityComparison{
+  bool operator () (SubscriberLinkPtr left, SubscriberLinkPtr right){
+    return left->getPriority() < right->getPriority();
+  }
+};
+typedef std::priority_queue<SubscriberLinkPtr, std::vector<SubscriberLinkPtr>, PriorityComparison> V_PrioritySubscriberLink;
 
 /**
  * \brief A Publication manages an advertised topic
@@ -171,8 +181,10 @@ private:
   boost::mutex callbacks_mutex_;
 
   V_SubscriberLink subscriber_links_;
+  V_PrioritySubscriberLink priority_subscriber_links_;
   // We use a recursive mutex here for the rare case that a publish call causes another one (like in the case of a rosconsole call)
   boost::mutex subscriber_links_mutex_;
+  boost::mutex priority_subscriber_links_mutex_;
 
   bool dropped_;
 

@@ -197,13 +197,29 @@ void Publication::addSubscriberLink(const SubscriberLinkPtr& sub_link)
 {
   {
     boost::mutex::scoped_lock lock(subscriber_links_mutex_);
+    boost::mutex::scoped_lock priority_lock(priority_subscriber_links_mutex_);
 
     if (dropped_)
     {
       return;
     }
 
-    subscriber_links_.push_back(sub_link);
+   std::cout << "\"" << sub_link->getDestinationCallerID() << "\"" << " please input priority : ";
+    int priority;
+    std::cin >> priority;
+    sub_link->setPriority(priority);
+    priority_subscriber_links_.push(sub_link);
+    for(V_SubscriberLink::iterator i = subscriber_links_.begin();
+        i != subscriber_links_.end(); ++i)
+    {
+        priority_subscriber_links_.push(*i);
+    }
+    subscriber_links_.clear();
+    while(!priority_subscriber_links_.empty()){
+        subscriber_links_.push_back(priority_subscriber_links_.top());
+        priority_subscriber_links_.pop();
+    }
+
 
     if (sub_link->isIntraprocess())
     {
