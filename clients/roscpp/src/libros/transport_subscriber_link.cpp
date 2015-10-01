@@ -208,7 +208,7 @@ void TransportSubscriberLink::enqueueMessage(const SerializedMessage& m, bool se
     outbox_.push(m);
   }
 
-  startMessageWrite(false);
+  startMessageWrite(true);
 
   stats_.messages_sent_++;
   stats_.bytes_sent_ += m.num_bytes;
